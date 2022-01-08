@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- encoding: utf-8 -*-
 
 import github3 as github
@@ -38,7 +38,8 @@ def search_wrapper(gen):
                 'GitHub Search API rate limit reached. Sleeping for %d seconds.\n\n'
                 % (sleep_time))
             time.sleep(sleep_time)
-            yield next(gen_back)
+            #yield next(gen_back)
+            yield from search_wrapper(gen_back)
         except Exception as e:
             raise e
 
@@ -87,7 +88,7 @@ def search(repo_to_search=None,
            output_filename=None):
 
     if gh_dorks_file is None:
-        for path_prefix in ['.', os.path.join(prefix, 'github-dorks/')]:
+        for path_prefix in ['.',os.path.dirname(os.path.realpath(__file__)) ,os.path.join(prefix, 'github-dorks/')]:
             filename = os.path.join(path_prefix, 'github-dorks.txt')
             if os.path.isfile(filename):
                 gh_dorks_file = filename
@@ -137,19 +138,21 @@ def search(repo_to_search=None,
                         outputFile.write('{dork}, {text_matches}, {path}, {score}, {url}\n'.format(**fmt_args))
                     else:
                         result = '\n'.join([
-                            'Found result for {dork}',
+                            'Found result for \033[92m{dork}\033[0m',
                             'Text matches: {text_matches}', 'File path: {path}',
-                            'Score/Relevance: {score}', 'URL of File: {url}', ''
+                            'Score/Relevance: {score}', 'URL of File: \033[92m{url}\033[0m', ''
                         ]).format(**fmt_args)
                         print(result)
 
             except github.exceptions.GitHubError as e:
                 print('GitHubError encountered on search of dork: ' + dork)
                 print(e)
+                print()
                 return
             except Exception as e:
-                print(e)
                 print('Error encountered on search of dork: ' + dork)
+                print(e)
+                print()
 
     if not found:
         print('No results for your dork search' + addendum + '. Hurray!')
